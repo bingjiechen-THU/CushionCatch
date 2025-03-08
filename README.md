@@ -4,4 +4,4 @@ The code will soon be open source.
 
 Project Page: https://cushion-catch.github.io/
 
-arXiv:https://arxiv.org/pdf/2409.14754
+arXiv: https://arxiv.org/pdf/2409.14754
