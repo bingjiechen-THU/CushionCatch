@@ -67,7 +67,7 @@ class Vel_tracking:
             cbf_state = True
 
         # Activate self-collision CBF if the end-effector is close to the base.
-        if distance < 0.6:
+        if distance < 0.7:
             # Constraint: h_dot + gamma * h >= 0
             direc_cons = xy_vel @ cy_base_xy >= -self.gamma * b_xy
             constraints.append(direc_cons)

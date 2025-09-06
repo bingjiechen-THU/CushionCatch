@@ -52,4 +52,4 @@ def plot3d(data, file_path, point=None):
     plt.savefig(file_path, bbox_inches='tight')
 
     # Display the plot
-    plt.show()
+    # plt.show()

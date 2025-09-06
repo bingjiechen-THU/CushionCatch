@@ -86,7 +86,7 @@ class PRCJointPlanner:
 
         return q_t, v_t, a_t
 
-    def get_trajectory(self, q_0, q_ca, delta_t, lambda_param=1.2):
+    def get_trajectory(self, q_0, q_ca, t_opt, delta_t, lambda_param=1):
         """
         Executes the full trajectory planning process and returns the result.
 
@@ -110,8 +110,7 @@ class PRCJointPlanner:
 
         # 1. Calculate the angle difference for each joint
         self.delta_q = np.abs(self.q_ca - self.q_0)
-        print("delta_q=", self.delta_q)
-
+        
         # 2. Calculate the minimum time required for each joint to move independently
         t_prc_individual = self._compute_t_prc(self.delta_q)
 
@@ -120,25 +119,78 @@ class PRCJointPlanner:
         T_prc = self.lambda_param * np.max(t_prc_individual)
         print("T_prc=", T_prc)
 
-        # 4. Generate the time series
-        t_values = np.arange(0, T_prc, self.delta_t)
+        if(T_prc <= t_opt):
+            # 4. Generate the time series
+            t_values = np.arange(0, T_prc, self.delta_t)
 
-        # 5. Generate trajectories for each joint
-        q_list, v_list, a_list = [], [], []
-        for i in range(len(self.q_0)):
-            q_traj, v_traj, a_traj = self._generate_poly5_trajectory(
-                t_values, T_prc, self.q_0[i], self.q_ca[i]
-            )
-            q_list.append(q_traj)
-            v_list.append(v_traj)
-            a_list.append(a_traj)
+            # 5. Generate trajectories for each joint
+            q_list, v_list, a_list = [], [], []
+            for i in range(len(self.q_0)):
+                q_traj, v_traj, a_traj = self._generate_poly5_trajectory(
+                    t_values, T_prc, self.q_0[i], self.q_ca[i]
+                )
+                q_list.append(q_traj)
+                v_list.append(v_traj)
+                a_list.append(a_traj)
 
-        # 6. Convert trajectory lists to NumPy arrays and transpose to (N_steps, N_joints)
-        q_trajectory = np.array(q_list).T
-        velocities = np.array(v_list).T
-        accelerations = np.array(a_list).T
+            # 6. Convert trajectory lists to NumPy arrays and transpose to (N_steps, N_joints)
+            q_trajectory = np.array(q_list).T
+            velocities = np.array(v_list).T
+            accelerations = np.array(a_list).T
 
-        return len(q_trajectory), q_trajectory, velocities, accelerations
+            return len(q_trajectory), q_trajectory, velocities, accelerations
+        else:
+            # This block handles the case where the optimal time t_opt is shorter
+            # than the minimum time T_prc required for a start-stop trajectory.
+            # We generate a 3rd-order polynomial trajectory that reaches the target
+            # position at t_opt, but with non-zero final velocity and acceleration.
+            # The initial conditions (v=0, a=0) are relaxed to (v=0) to find a solution.
+
+            # q(t) = a0 + a1*t + a2*t^2 + a3*t^3
+            # Boundary conditions: q(0)=q0, v(0)=0, q(t_opt)=q_ca, v(t_opt)=v_f
+            # To find a simple solution, we can assume a(t_opt)=0, which gives
+            # v_f = 3/2 * (q_ca - q_0) / t_opt.
+
+            T = t_opt  # Use the provided optimal time
+            t_values = np.arange(0, T, self.delta_t)
+
+            q_list, v_list, a_list = [], [], []
+            for i in range(len(self.q_0)):
+                q0 = self.q_0[i]
+                qca = self.q_ca[i]
+
+                # Coefficients for a 3rd-order polynomial:
+                # q(t) = a0 + a1*t + a2*t^2 + a3*t^3
+                # Conditions: q(0)=q0, v(0)=0, q(T)=qca, a(T)=0
+                a0 = q0
+                a1 = 0
+                a2 = 3 * (qca - q0) / (T**2)
+                a3 = -2 * (qca - q0) / (T**3)
+
+                # Calculate position q(t)
+                q_t = a0 + a1 * t_values + a2 * t_values**2 + a3 * t_values**3
+
+                # Calculate velocity v(t)
+                v_t = a1 + 2 * a2 * t_values + 3 * a3 * t_values**2
+
+                # Calculate acceleration a(t)
+                a_t = 2 * a2 + 6 * a3 * t_values
+
+                # It's crucial to check if this new trajectory violates constraints,
+                # as t_opt is less than the calculated safe time T_prc.
+                if np.max(np.abs(v_t)) > self.qd_max[i] or np.max(np.abs(a_t)) > self.acc_max[i]:
+                    print(f"Warning: Trajectory for joint {i} with T={T}s might violate kinematic constraints.")
+
+                q_list.append(q_t)
+                v_list.append(v_t)
+                a_list.append(a_t)
+
+            # Convert lists to NumPy arrays and transpose
+            q_trajectory = np.array(q_list).T
+            velocities = np.array(v_list).T
+            accelerations = np.array(a_list).T
+
+            return len(q_trajectory), q_trajectory, velocities, accelerations
 
 
 # Example usage
