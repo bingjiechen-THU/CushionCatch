@@ -69,24 +69,3 @@ class KalmanFilter3D:
         velocity = np.array(self.s_b[3:6].flatten())
         return position, velocity
 
-# # 示例使用
-# # 定义滤波器参数 
-# delta_t = 0.1
-# KD = 0.0238
-# Q = np.eye(6) * 0.01  # 过程噪声协方差
-# R = np.eye(6) * 0.1   # 测量噪声协方差
-# initial_state = np.array([1.1, 1.1, 2.2, 0, 0, 0])
-
-# # 创建卡尔曼滤波器实例
-# kf = KalmanFilter3D(delta_t, KD, Q, R, initial_state)
-
-# # 假设我们得到一个新的测量值 (三维位置和速度)
-# measure_value = np.array([1, 1, 2, 0.5, 0.5, 0.5])
-
-# # 更新卡尔曼滤波器
-# kf.update(measure_value)
-
-# # 获取预测的状态
-# position, velocity = kf.get_state()
-# print("预测的三维位置:", position)
-# print("预测的三维速度:", velocity)

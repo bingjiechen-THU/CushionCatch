@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from compliance_learning.main_mhsa_lstm import LSTMModelWithPositionEncoding,set_seed
+from Compliance_Learner.main_mhsa_lstm import LSTMModelWithPositionEncoding,set_seed
 
 class POC_Traj_Learner():
     def __init__(self, load_path="./ckpt/model_weights.pth"):

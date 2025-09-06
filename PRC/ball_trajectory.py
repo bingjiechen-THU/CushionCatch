@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
-from plot_image import *
+from Plot.plot_image import *
 from scipy.interpolate import CubicSpline
 
 
@@ -87,4 +87,4 @@ if __name__ == "__main__":
     data = [x, y, z]
     
     # 绘制3D轨迹图
-    plot3d(data, "./image/pos_3d.png")
+    plot3d(data, "./Plot/pos_3d_test.png")
