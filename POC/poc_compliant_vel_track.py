@@ -8,7 +8,7 @@ class Vel_tracking:
     with Control Barrier Functions (CBFs) to ensure safety.
     """
 
-    def __init__(self, gamma=0.1):
+    def __init__(self, gamma=0.1, enable_self_collision_cons=True, enable_ground_collision_cons=True):
         """
         Initializes the velocity tracking controller.
 
@@ -16,6 +16,9 @@ class Vel_tracking:
             gamma (float): Control gain for the CBF constraints.
         """
         self.gamma = gamma
+        self.enable_self_collision_cons = enable_self_collision_cons
+        self.enable_ground_collision_cons = enable_ground_collision_cons
+
 
     def compute_joint_vel(self, v, jacobian, base_T, wTe_cy):
         """
@@ -60,14 +63,14 @@ class Vel_tracking:
         cbf_state = False
 
         # Activate Z-axis CBF if the end-effector is close to the ground.
-        if z_cy < 0.2:
+        if z_cy < 0.2 and self.enable_ground_collision_cons:
             # Constraint: h_dot + gamma * h >= 0
             cbf_z = z_dot >= -self.gamma * b_z
             constraints.append(cbf_z)
             cbf_state = True
 
         # Activate self-collision CBF if the end-effector is close to the base.
-        if distance < 0.7:
+        if distance < 0.6 and self.enable_self_collision_cons:
             # Constraint: h_dot + gamma * h >= 0
             direc_cons = xy_vel @ cy_base_xy >= -self.gamma * b_xy
             constraints.append(direc_cons)

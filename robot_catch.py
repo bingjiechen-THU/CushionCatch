@@ -2,8 +2,9 @@ import spatialgeometry as sg
 import spatialmath as sm
 import qpsolvers as qp
 import numpy as np
-
+import argparse
 import Env.scene as scene
+
 from Plot.plot_image import *
 
 from PRC.ball_kalman import KalmanFilter3D
@@ -19,7 +20,7 @@ class Catcher():
     """
     A class to simulate a robotic arm catching a ball.
     """
-    def __init__(self, initial_state, measure_state) -> None:
+    def __init__(self, initial_state, measure_stat, self_collision, ground_collision) -> None:
         # --- Robot Simulation Environment Variables ---
         self.env, self.robot = scene.swift_scene()  # Initialize the Swift environment and the robot
         self.ball = sg.Sphere(radius=0.05, base=sm.SE3(initial_state[0], initial_state[1], initial_state[2]), color=(0.7, 0.2, 0.1, 1.0))
@@ -71,7 +72,7 @@ class Catcher():
         self.joint_planner = PRCJointPlanner(joint_max_vel, joint_max_acc)
 
         # --- Compliant Control Collision Avoidance ---
-        self.vel_tracking = Vel_tracking(gamma=0.1)
+        self.vel_tracking = Vel_tracking(gamma=0.1, enable_self_collision_cons=self_collision, enable_ground_collision_cons=ground_collision)
 
     def state_estimate(self, measure_value):
         """
@@ -162,15 +163,19 @@ class Catcher():
 
 
 if __name__ == '__main__':
-    initial_state = np.array([2, 2, 3, -1, -2, 2])              # front
-    # initial_state = np.array([0, 2, 2.5, 0, -1.5, 2])         # left
+    parser = argparse.ArgumentParser(description="Cushion-Catch simulation with collision flags")
+    parser.add_argument("--no-self-collision-cons", action="store_false", help="Enable self-collision avoidance in compliant phase")
+    parser.add_argument("--no-ground-collision-cons", action="store_false", help="Enable ground-collision avoidance in compliant phase")
+    args = parser.parse_args()
+    
+    initial_state = np.array([0, 2, 2.5, 0, -1.5, 2])         # left
+    # initial_state = np.array([2, 2, 3, -1, -2, 2])            # front
     # initial_state = np.array([-1.5, -1.5, 3, 1.5, 1.5, 1])    # right
     # initial_state = np.array([-0.8, -0.7, 2.5, 0.6, 1.5, 2])  # behind
-    # initial_state = np.array([-0.8, -0.7, 2, 0.6, 1.5, 2])    # behind
     noise = np.random.normal(0, 0.05, size=initial_state.shape)
     measure_state = initial_state + noise
 
-    catcher = Catcher(initial_state, measure_state)
+    catcher = Catcher(initial_state, measure_state, args.no_self_collision_cons, args.no_ground_collision_cons)
     catcher.get_desired_state(measure_state)
     catcher.get_prc_joint_traj()
     catcher.get_poc_compliant_vel()

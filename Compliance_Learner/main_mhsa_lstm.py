@@ -124,7 +124,10 @@ def create_dataloader(data_dir, batch_size=32, shuffle=True, test_size=0.2, rand
 
     return train_dataloader, test_dataloader
 
+
 class MultiHeadAttentionModel(nn.Module):
+    """A model using multiple layers of Multi-Head Attention."""
+
     def __init__(self, input_size, hidden_size, num_heads, output_size, num_layers=2):
         super(MultiHeadAttentionModel, self).__init__()
         self.attention_layers = nn.ModuleList([
@@ -138,11 +141,14 @@ class MultiHeadAttentionModel(nn.Module):
         attn_output = x
         for attn_layer in self.attention_layers:
             attn_output, _ = attn_layer(attn_output, attn_output, attn_output)
-        
+
         output = self.fc_out(attn_output)
         return output
 
+
 class PositionalEncoding(nn.Module):
+    """Injects some information about the relative or absolute position of the tokens in the sequence."""
+
     def __init__(self, d_model, max_len=5000):
         super(PositionalEncoding, self).__init__()
         self.encoding = torch.zeros(max_len, d_model)
@@ -155,7 +161,10 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         return x + self.encoding[:, :x.size(1)].to(x.device)
 
+
 class LSTMModelWithPositionEncoding(nn.Module):
+    """An LSTM-based model with Positional Encoding."""
+
     def __init__(self, input_size, hidden_size, output_size, num_layers=2, dropout=0.1):
         super(LSTMModelWithPositionEncoding, self).__init__()
         self.positional_encoding = PositionalEncoding(input_size)
@@ -168,8 +177,9 @@ class LSTMModelWithPositionEncoding(nn.Module):
         output = self.fc_out(lstm_out)
         return output
 
-# 训练模型并保存权重
+
 def train_and_save_model(model, train_loader, criterion, optimizer, device, seq_len=1, num_epochs=20, save_path="model_weights.pth"):
+    """Train the model and save its weights."""
     model = model.to(device)
     model.train()
     for epoch in range(num_epochs):
@@ -177,33 +187,39 @@ def train_and_save_model(model, train_loader, criterion, optimizer, device, seq_
         for inputs, input_lengths, targets, target_lengths, file_names in train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
-            
+
             current_input = inputs.clone()
-            loss = 0
-            # 动态确定max_length
+            # Dynamically determine max_length for generation
             max_length = target_lengths.max().item() if seq_len == 0 else seq_len
 
             all_outputs = []
 
+            # Autoregressive generation loop
             for t in range(max_length):
                 outputs = model(current_input)
                 next_preds = []
                 for i, length in enumerate(target_lengths):
                     if t < length:
+                        # Use the prediction for the current timestep
                         next_pred = outputs[i, t, :]
                         next_preds.append(next_pred)
                     else:
-                        next_preds.append(torch.zeros_like(outputs[i, t, :]))  # 填充
+                        # Use padding for sequences that have ended
+                        next_preds.append(torch.zeros_like(outputs[i, t, :]))
                 next_preds = torch.stack(next_preds, dim=0)
                 next_preds = next_preds.unsqueeze(1)
+                # Append the new predictions to the input for the next step
                 current_input = torch.cat((current_input, next_preds), dim=1)
                 all_outputs.append(next_preds)
-            
+
             all_outputs = torch.cat(all_outputs, dim=1)
 
-            # 计算损失
+            # Calculate loss
+            # Create a mask to ignore padded parts of the output and target
             mask = torch.arange(max_length, device=device).expand(len(target_lengths), max_length) < target_lengths.unsqueeze(1).to(device)
-            mask = mask.unsqueeze(-1).expand(-1, -1, targets.size(-1))  # 调整掩码形状以匹配目标
+            mask = mask.unsqueeze(-1).expand(-1, -1, targets.size(-1))  # Adjust mask shape to match targets
+            
+            # Apply mask to get only the valid (non-padded) elements
             all_outputs = all_outputs.masked_select(mask).view(-1, targets.size(-1))
             try:
                 targets = targets[:, :max_length, :].masked_select(mask).view(-1, targets.size(-1))
@@ -211,20 +227,21 @@ def train_and_save_model(model, train_loader, criterion, optimizer, device, seq_
                 print(e)
                 print(file_names)
                 continue
-            
+
             loss = criterion(all_outputs, targets)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-        
+
         print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss/len(train_loader)}')
-    
-    # 保存权重文件
+
+    # Save the model weights
     torch.save(model.state_dict(), save_path)
     print(f"Model weights saved to {save_path}")
 
-# 测试模型
+
 def test_model(model, test_loader, criterion, device, seq_len=1, load_path=None):
+    """Test the model on the test dataset."""
     if load_path:
         model.load_state_dict(torch.load(load_path, map_location='cpu'))
     model.to(device)
@@ -233,68 +250,82 @@ def test_model(model, test_loader, criterion, device, seq_len=1, load_path=None)
     with torch.no_grad():
         for inputs, input_lengths, targets, target_lengths, file_names in test_loader:
             inputs, targets = inputs.to(device), targets.to(device)
-            
+
             current_input = inputs.clone()
-            loss = 0
+            # Dynamically determine max_length for generation
             max_length = target_lengths.max().item() if seq_len == 0 else seq_len
 
             all_outputs = []
 
+            # Autoregressive generation loop
             for t in range(max_length):
                 outputs = model(current_input)
                 next_preds = []
                 for i, length in enumerate(target_lengths):
                     if t < length:
+                        # Use the prediction for the current timestep
                         next_pred = outputs[i, t, :]
                         next_preds.append(next_pred)
                     else:
-                        next_preds.append(torch.zeros_like(outputs[i, t, :]))  # 填充
+                        # Use padding for sequences that have ended
+                        next_preds.append(torch.zeros_like(outputs[i, t, :]))
                 next_preds = torch.stack(next_preds, dim=0)
                 next_preds = next_preds.unsqueeze(1)
+                # Append the new predictions to the input for the next step
                 current_input = torch.cat((current_input, next_preds), dim=1)
                 all_outputs.append(next_preds)
-            
+
             all_outputs = torch.cat(all_outputs, dim=1)
 
+            # Create a mask to ignore padded parts of the output and target
             mask = torch.arange(max_length, device=device).expand(len(target_lengths), max_length) < target_lengths.unsqueeze(1).to(device)
-            mask = mask.unsqueeze(-1).expand(-1, -1, targets.size(-1))  # 调整掩码形状以匹配目标
-            all_outputs = all_outputs.masked_select(mask).view(-1, targets.size(-1))
+            mask = mask.unsqueeze(-1).expand(-1, -1, targets.size(-1))  # Adjust mask shape to match targets
             
+            # Apply mask to get only the valid (non-padded) elements
+            all_outputs = all_outputs.masked_select(mask).view(-1, targets.size(-1))
+
             try:
                 targets = targets[:, :max_length, :].masked_select(mask).view(-1, targets.size(-1))
             except Exception as e:
                 print(e)
                 print(file_names)
                 continue
-            
+
             loss = criterion(all_outputs, targets)
             total_loss += loss.item()
-    
+
     print(f'Test Loss: {total_loss/len(test_loader)}')
     return total_loss / len(test_loader)
 
 
 if __name__ == '__main__':
-    # 固定随机种子
+    # Set random seed for reproducibility
     set_seed(42)
     num_epochs = 100
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+
+    # Configuration
     data_dir = 'data/data_collection'
     save_path = 'ckpt/model_weights.pth'
     batch_size = 12
+
+    # Create DataLoaders
     train_dataloader, test_dataloader = create_dataloader(data_dir, batch_size=batch_size)
 
-    input_size = 6  # 输入特征的维度
-    hidden_size = 64  # 注意力层的隐藏层大小
-    output_size = 6  # 输出特征的维度
-    num_heads = 6  # 多头注意力中的头数量
+    # Model parameters
+    input_size = 6   # Dimension of input features
+    hidden_size = 64 # Hidden size of the LSTM layers
+    output_size = 6  # Dimension of output features
+    num_heads = 6    # Number of heads in Multi-Head Attention (not used in the final model)
+
+    # Initialize model, loss function, and optimizer
     model = LSTMModelWithPositionEncoding(input_size, hidden_size, output_size, num_layers=2).to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    # 训练并保存模型
+    # Train and save the model
     train_and_save_model(model, train_dataloader, criterion, optimizer, device, seq_len=0, num_epochs=num_epochs, save_path=save_path)
+    
+    # Test the model
     test_model(model, test_dataloader, criterion, device, seq_len=0, load_path=save_path)
-   
