@@ -36,19 +36,19 @@ arXiv: https://arxiv.org/pdf/2409.14754
       <img src="gifs/no_collision.gif"
            alt="No collision"
            style="width:320px; max-width:100%; height:auto; display:block; margin:0 auto;" />
-      <strong>No Collision</strong>
+      <small>No Collision</small>
     </td>
     <td style="width:33.33%; text-align:center; vertical-align:top;">
       <img src="gifs/self_collision.gif"
            alt="Self collision"
            style="width:320px; max-width:100%; height:auto; display:block; margin:0 auto;" />
-      <strong>Self-Collision</strong>
+      <small>Self-Collision</small>
     </td>
     <td style="width:33.33%; text-align:center; vertical-align:top;">
       <img src="gifs/ground_collision.gif"
            alt="Ground collision"
            style="width:320px; max-width:100%; height:auto; display:block; margin:0 auto;" />
-      <strong>Ground Collision</strong>
+      <small>Ground Collision</small>
     </td>
   </tr>
 </table>
