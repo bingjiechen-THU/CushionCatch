@@ -58,21 +58,21 @@ arXiv: https://arxiv.org/pdf/2409.14754
 
 # Installation
 
-### 1. Create environment 
+1. Create environment 
 
    ```bash
    conda create -n cushion_catch python=3.9
    conda activate cushion_catch
    ```
 
-### 2. Install swift by https://github.com/jhavl/swift.git
+2. Install swift by https://github.com/jhavl/swift.git
 
    ```bash
    cd swift
    pip install -e .
    ```
 
-### 3. Clone this codebase
+3. Clone this codebase
 
    ```bash
    cd CushionCatch
@@ -80,15 +80,15 @@ arXiv: https://arxiv.org/pdf/2409.14754
    ```
 
 # Running
-### Default (with safety constraints enabled)
+Default (with safety constraints enabled)
   ```bash
   python robot_catch.py
   ```
-### Disable self-collision constraint only
+Disable self-collision constraint only
   ```bash
   python robot_catch.py --no-self-collision-cons
   ```
-### Disable ground-collision constraint only
+Disable ground-collision constraint only
   ```bash
   python robot_catch.py --no-ground-collision-cons
   ```
@@ -101,5 +101,5 @@ arXiv: https://arxiv.org/pdf/2409.14754
     |-- Plot                # Scripts for plotting catching results
     |-- POC                 # Code for the POC planner
     |-- PRC                 # Code for the PRC planner
-    |-- gifs
+    |-- gifs                # gifs for readme
 ```

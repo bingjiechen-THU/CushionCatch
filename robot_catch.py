@@ -31,7 +31,7 @@ class Catcher():
             [0,  0,  1,  0],
             [0,  1,  0,  0],
             [-1, 0,  0,  0.06],
-            [0,  0,  0,  1]
+            [0,  0,  0,  1]collision flags
         ]))
         wTe = self.robot.fkine(self.robot.q)
         # Cylindrical container for catching
