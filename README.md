@@ -10,10 +10,10 @@ arXiv: https://arxiv.org/pdf/2409.14754
 <h2>Simulation Results</h2>
 <table>
   <tr>
-    <td><img src="gifs/sim1.gif" width="400" alt="Simulation result 1"/></td>
-    <td><img src="gifs/sim2.gif" width="400" alt="Simulation result 2"/></td>
-    <td><img src="gifs/sim3.gif" width="400" alt="Simulation result 3"/></td>
-    <td><img src="gifs/sim4.gif" width="400" alt="Simulation result 4"/></td>
+    <td><img src="gifs/sim1.gif" width="200" alt="Simulation result 1"/></td>
+    <td><img src="gifs/sim2.gif" width="200" alt="Simulation result 2"/></td>
+    <td><img src="gifs/sim3.gif" width="200" alt="Simulation result 3"/></td>
+    <td><img src="gifs/sim4.gif" width="200" alt="Simulation result 4"/></td>
   </tr>
 </table>
 
@@ -21,10 +21,10 @@ arXiv: https://arxiv.org/pdf/2409.14754
 <h2>Real-World Results</h2>
 <table>
   <tr>
-    <td><img src="gifs/phy1.gif" width="400" alt="Physical demo 1"/></td>
-    <td><img src="gifs/phy2.gif" width="400" alt="Physical demo 2"/></td>
-    <td><img src="gifs/phy3.gif" width="400" alt="Physical demo 3"/></td>
-    <td><img src="gifs/phy4.gif" width="400" alt="Physical demo 4"/></td>
+    <td><img src="gifs/phy1.gif" width="200" alt="Physical demo 1"/></td>
+    <td><img src="gifs/phy2.gif" width="200" alt="Physical demo 2"/></td>
+    <td><img src="gifs/phy3.gif" width="200" alt="Physical demo 3"/></td>
+    <td><img src="gifs/phy4.gif" width="200" alt="Physical demo 4"/></td>
   </tr>
 </table>
 
@@ -36,23 +36,22 @@ arXiv: https://arxiv.org/pdf/2409.14754
       <img src="gifs/no_collision.gif"
            alt="No collision"
            style="width:320px; max-width:100%; height:auto; display:block; margin:0 auto;" />
-      <div><strong>No Collision</strong><br/><small>all constraints enforced</small></div>
+      <strong>No Collision</strong>
     </td>
     <td style="width:33.33%; text-align:center; vertical-align:top;">
       <img src="gifs/self_collision.gif"
            alt="Self collision"
            style="width:320px; max-width:100%; height:auto; display:block; margin:0 auto;" />
-      <div><strong>Self-Collision</strong><br/><small>self-collision constraint not enforced</small></div>
+      <strong>Self-Collision</strong>
     </td>
     <td style="width:33.33%; text-align:center; vertical-align:top;">
       <img src="gifs/ground_collision.gif"
            alt="Ground collision"
            style="width:320px; max-width:100%; height:auto; display:block; margin:0 auto;" />
-      <div><strong>Ground Collision</strong><br/><small>ground-collision constraint not enforced</small></div>
+      <strong>Ground Collision</strong>
     </td>
   </tr>
 </table>
-
 
 
 
